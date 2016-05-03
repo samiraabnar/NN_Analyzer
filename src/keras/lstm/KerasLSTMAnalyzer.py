@@ -51,27 +51,28 @@ class KerasLSTMAnalyzer(object):
 
 
         self.model = Sequential()
-        self.model.add(Embedding(len(index_to_word),output_dim=100, input_length=maxlen,dropout=0.5))
+        self.model.add(Embedding(len(index_to_word),output_dim=100, input_length=maxlen,dropout=0.1))
         self.model.add(LSTM(input_dim=100,output_dim=100,input_length=maxlen,dropout_W=0.5, dropout_U=0.0
                             ,return_sequences=True))
-        self.model.add(LSTM(input_dim=100,output_dim=100,input_length=maxlen,dropout_W=0.5,return_sequences=True))
-        self.model.add(LSTM(input_dim=100,output_dim=100,input_length=maxlen,dropout_W=0.5, dropout_U=0.0))
-        self.model.add(Dense(3))
-        self.model.add(Activation('sigmoid'))
+        self.model.add(LSTM(input_dim=100,output_dim=100,input_length=maxlen,dropout_W=0.5,return_sequences=True, inner_activation="tanh", activation="softmax"))
+        self.model.add(LSTM(input_dim=100,output_dim=100,input_length=maxlen,dropout_W=0.5,return_sequences=True, inner_activation="tanh",activation="softmax"))
+        self.model.add(LSTM(input_dim=100,output_dim=3,input_length=maxlen,dropout_W=0.0, dropout_U=0.0, inner_activation="tanh", activation="sigmoid"))
+        #self.model.add(Dense(3,activation="sigmoid"))
+        #self.model.add(Dense(3,activation="sigmoid"))
         self.model.compile(loss=loss,optimizer=optimizer,metrics=metrics)
 
 
         draw_weights = DrawWeights(figsize=(4, 4), layer_id=1, \
     param_id=0, weight_slice=(slice(None), 0))
 
-        self.model.fit(X_train, np.asarray(y_train), batch_size=32, nb_epoch=20,
+        self.model.fit(X_train, np.asarray(y_train), batch_size=32, nb_epoch=30,
           validation_data=(X_test, np.asarray(y_test)),callbacks=[draw_weights])
         score, acc = self.model.evaluate(X_test, np.asarray(y_test),
                             batch_size=32)
         print('Test score:', score)
         print('Test accuracy:', acc)
 
-        embeddings = self.model.layers[0].get_activation(index_to_word)
+        embeddings = self.model.layers[0].get_activations(index_to_word)
 
         tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
         Y = tsne.fit_transform(embeddings)
