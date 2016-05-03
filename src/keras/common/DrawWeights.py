@@ -13,6 +13,7 @@ class DrawWeights(keras.callbacks.Callback):
         self.ax = self.fig.add_subplot(1, 1, 1)
 
     def on_train_begin(self,logs):
+        print("Start Training ...")
         self.imgs = []
 
     def on_batch_end(self, batch, logs):
@@ -24,8 +25,11 @@ class DrawWeights(keras.callbacks.Callback):
             img = self.ax.imshow(weights[0], interpolation='nearest',aspect='auto')
             self.imgs.append([img])
 
+
+
     def on_train_end(self,logs):
         # Once the training has ended, display the animation
         anim = animation.ArtistAnimation(self.fig, self.imgs, interval=1, blit=False)
+        plt.colorbar(self.imgs[0][0])
         plt.show()
 
