@@ -24,6 +24,8 @@ import theano.tensor as T
 from NN_Analyzer.src.keras.common.DrawWeights import *
 from LSTM.src.WordEmbeddingLayer import *
 
+sys.setrecursionlimit(10000)
+
 
 
 
@@ -31,11 +33,11 @@ class KerasLSTMAnalyzer(object):
     def build_model_for_SentimentAnalysis(self,loss='binary_crossentropy',optimizer='adam',metrics=['accuracy']):
         print('Loading data...')
 
-        X_train, y_train, word_to_index, index_to_word, labels_count = DataPrep.load_one_hot_sentiment_data("../../../../LSTM/data/sentiment/trainsentence_and_label_binary.txt")
-        X_test, y_test = DataPrep.load_one_hot_sentiment_data_traind_vocabulary("../../../../LSTM/data/sentiment/devsentence_and_label_binary.txt",word_to_index, index_to_word,labels_count)
+        #X_train, y_train, word_to_index, index_to_word, labels_count = DataPrep.load_one_hot_sentiment_data("../../../../LSTM/data/sentiment/trainsentence_and_label_binary.txt")
+        #X_test, y_test = DataPrep.load_one_hot_sentiment_data_traind_vocabulary("../../../../LSTM/data/sentiment/devsentence_and_label_binary.txt",word_to_index, index_to_word,labels_count)
 
-        #X_train, y_train = WordEmbeddingLayer.load_embedded_data(path="../../../../LSTM/data/",name="train",representation="glove.840B.300d")
-        #X_test, y_test = WordEmbeddingLayer.load_embedded_data(path="../../../../LSTM/data/",name="dev",representation="glove.840B.300d")
+        X_train, y_train = WordEmbeddingLayer.load_embedded_data(path="../../../../LSTM/data/",name="train",representation="glove.840B.300d")
+        X_test, y_test = WordEmbeddingLayer.load_embedded_data(path="../../../../LSTM/data/",name="dev",representation="glove.840B.300d")
 
         print(len(X_train), 'train sequences')
         print(len(X_test), 'test sequences')
@@ -57,16 +59,22 @@ class KerasLSTMAnalyzer(object):
         #Embedding_Layer = Embedding(len(index_to_word),output_dim=100, input_length=maxlen)
         #self.model.add(Embedding_Layer)
         #self.model.add(Dropout(0.1))
-        LSTM1 = LSTM(input_dim=len(index_to_word),output_dim=100,input_length=maxlen,dropout_W=0.25, dropout_U=0.0
+        LSTM1 = LSTM(input_dim=300,output_dim=512,input_length=maxlen,dropout_W=0.5, dropout_U=0.0
                             ,return_sequences=True
                             )
         self.model.add(LSTM1)
-        self.model.add(LSTM(input_dim=100,output_dim=100,input_length=maxlen,dropout_W=0.5,return_sequences=True, inner_activation="tanh", activation="softmax"))
-        self.model.add(LSTM(input_dim=100,output_dim=len(index_to_word),input_length=maxlen,dropout_W=0.5,return_sequences=True, inner_activation="tanh",activation="softmax"))
+        LSTM2 = LSTM(input_dim=512,output_dim=300,input_length=maxlen,dropout_W=0.5, dropout_U=0.0
+                            ,return_sequences=False
+                            )
+        self.model.add(LSTM2)
+
+        #self.model.add(LSTM(input_dim=100,output_dim=100,input_length=maxlen,dropout_W=0.5,return_sequences=True, inner_activation="tanh", activation="softmax"))
+        #self.model.add(LSTM(input_dim=100,output_dim=len(index_to_word),input_length=maxlen,dropout_W=0.5,return_sequences=True, inner_activation="tanh",activation="softmax"))
         #self.model.add(LSTM(input_dim=100,output_dim=3,input_length=maxlen,dropout_W=0.0, dropout_U=0.0, inner_activation="tanh", activation="sigmoid"))
         #self.model.add(Dense(input_dim=100,output_dim=3))
         #self.model.add(Activation("sigmoid"))
-        #self.model.add(Dense(3,activation="sigmoid"))
+        self.model.add(Dense(input_dim=512,output_dim=3,activation="sigmoid"))
+
         self.model.compile(loss=loss,optimizer=optimizer,metrics=metrics)
 
         #embed = theano.function(Embedding_Layer.input(train=False),Embedding_Layer.output(train=False))
@@ -79,9 +87,9 @@ class KerasLSTMAnalyzer(object):
 
 
 
-        self.model.fit(X_train,Y_train, batch_size=32, nb_epoch=2,
-          validation_data=(X_test, Y_test))
-        score, acc = self.model.evaluate(X_test, Y_test,
+        self.model.fit(X_train,y_train, batch_size=32, nb_epoch=100,
+          validation_data=(X_test, y_test))
+        score, acc = self.model.evaluate(X_test, y_test,
                             batch_size=32)
         print('Test score:', score)
         print('Test accuracy:', acc)
