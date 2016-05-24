@@ -59,11 +59,11 @@ class KerasLSTMAnalyzer(object):
         #Embedding_Layer = Embedding(len(index_to_word),output_dim=100, input_length=maxlen)
         #self.model.add(Embedding_Layer)
         #self.model.add(Dropout(0.1))
-        LSTM1 = LSTM(input_dim=300,output_dim=512,input_length=maxlen,dropout_W=0.5, dropout_U=0.0
+        LSTM1 = LSTM(input_dim=300,output_dim=10,input_length=maxlen,dropout_W=0.25, dropout_U=0.0
                             ,return_sequences=True
                             )
         self.model.add(LSTM1)
-        LSTM2 = LSTM(input_dim=512,output_dim=300,input_length=maxlen,dropout_W=0.5, dropout_U=0.0
+        LSTM2 = LSTM(input_dim=10,output_dim=300,input_length=maxlen,dropout_W=0.25, dropout_U=0.0
                             ,return_sequences=False
                             )
         self.model.add(LSTM2)
@@ -73,7 +73,7 @@ class KerasLSTMAnalyzer(object):
         #self.model.add(LSTM(input_dim=100,output_dim=3,input_length=maxlen,dropout_W=0.0, dropout_U=0.0, inner_activation="tanh", activation="sigmoid"))
         #self.model.add(Dense(input_dim=100,output_dim=3))
         #self.model.add(Activation("sigmoid"))
-        self.model.add(Dense(input_dim=512,output_dim=3,activation="sigmoid"))
+        self.model.add(Dense(input_dim=300,output_dim=3,activation="sigmoid"))
 
         self.model.compile(loss=loss,optimizer=optimizer,metrics=metrics)
 
